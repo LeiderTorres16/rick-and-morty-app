@@ -2,23 +2,20 @@
 
 import useFavoriteStore from "@/stores/useFavoriteStore";
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { FaHeart, FaInfoCircle } from "react-icons/fa";
 
 export const PersonajeCard = ({ character }) => {
   const [successMessage, setSuccessMessage] = useState("");
   const [messageColor, setMessageColor] = useState("bg-green-500");
-  const [isFavorite, setIsFavorite] = useState(false);
+
   const { addFavorite, removeFavorite, favorites } = useFavoriteStore();
   const router = useRouter();
 
-  useEffect(() => {
-    const alreadyInFavorites = favorites.some((fav) => fav.id === character.id);
-    setIsFavorite(alreadyInFavorites);
-  }, [favorites, character.id]);
+  const isFavorite = favorites.some((fav) => fav.id === character.id);
 
-  const handleToggleFavorite = (character) => {
+  const handleToggleFavorite = () => {
     if (isFavorite) {
       removeFavorite(character.id);
       setSuccessMessage(`${character.name} eliminado de favoritos`);
@@ -28,7 +25,6 @@ export const PersonajeCard = ({ character }) => {
       setSuccessMessage(`${character.name} añadido a favoritos`);
       setMessageColor("bg-green-500");
     }
-    setIsFavorite(!isFavorite);
     setTimeout(() => setSuccessMessage(""), 3000);
   };
 
@@ -69,7 +65,7 @@ export const PersonajeCard = ({ character }) => {
         </div>
         <div className="flex justify-between p-4 bg-gray-100 dark:bg-gray-700 space-x-4">
           <motion.button
-            onClick={() => handleToggleFavorite(character)}
+            onClick={handleToggleFavorite}
             whileTap={{ scale: 0.9 }}
             className={`flex items-center justify-center px-4 py-2 rounded-md transition-colors flex-1 ${
               isFavorite
