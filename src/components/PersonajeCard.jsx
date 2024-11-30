@@ -2,7 +2,7 @@
 
 import useFavoriteStore from "@/stores/useFavoriteStore";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { FaHeart, FaInfoCircle } from "react-icons/fa";
 
@@ -10,8 +10,12 @@ export const PersonajeCard = ({ character }) => {
   const [successMessage, setSuccessMessage] = useState("");
   const [messageColor, setMessageColor] = useState("bg-green-500");
 
-  const { addFavorite, removeFavorite, favorites } = useFavoriteStore();
+  const { addFavorite, removeFavorite, favorites, initializeFavorites } = useFavoriteStore();
   const router = useRouter();
+
+  useEffect(() => {
+    initializeFavorites();
+  }, []);
 
   const isFavorite = favorites.some((fav) => fav.id === character.id);
 
