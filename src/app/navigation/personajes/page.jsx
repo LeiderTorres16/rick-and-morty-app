@@ -1,28 +1,16 @@
-"use client"; // Asegurarse de que este componente es un componente de cliente
+"use client";
 
 import { useState, useEffect } from "react";
-import axios from "axios";
 import { PersonajeCard } from "@/components";
-import { notFound } from "next/navigation";
+import { getPersonajes } from "@/services/rickAndMortyService";
 
-async function getPersonajes(page = 1) {
-  try {
-    const response = await axios.get(
-      `https://rickandmortyapi.com/api/character?page=${page}`
-    );
-    
-    return response.data;
-  } catch (error) {
-    return notFound();
-  }
-}
 
 export default function PersonajesPage() {
   const [personajes, setPersonajes] = useState([]);
   const [filteredPersonajes, setFilteredPersonajes] = useState([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
-  const [search, setSearch] = useState(""); // Instancia de useRouter
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     async function fetchData() {
@@ -60,7 +48,6 @@ export default function PersonajesPage() {
         Personajes de Rick and Morty
       </h1>
 
-      {/* Barra de búsqueda */}
       <div className="flex justify-center mt-6">
         <input
           type="text"
@@ -72,7 +59,7 @@ export default function PersonajesPage() {
       </div>
 
       {filteredPersonajes.length > 0 ? (
-        <div>
+        <div className="pb-5">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-6">
             {filteredPersonajes.map((character) => (
               <PersonajeCard key={character.id} character={character}/>

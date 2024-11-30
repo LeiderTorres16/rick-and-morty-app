@@ -22,7 +22,6 @@ export default function FavoritosPage() {
     <div className="container mx-auto px-4">
       <h1 className="text-3xl font-bold text-center mt-8">Favoritos</h1>
 
-      {/* Mensaje de éxito */}
       {successMessage && (
         <motion.div
           className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-red-500 text-white py-2 px-4 rounded shadow-md z-50"

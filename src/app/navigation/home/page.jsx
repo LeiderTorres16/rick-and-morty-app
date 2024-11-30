@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Image from "next/image";
 
 export default function HomePage() {
   return (
@@ -8,7 +9,21 @@ export default function HomePage() {
       className="flex flex-col items-center justify-center"
       style={{ height: "calc(100vh - 64px)", overflow: "hidden" }}
     >
-      {/* Animación del título */}
+      {/* Imagen del logo */}
+      <motion.div
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 1, delay: 1 }}
+        className="mt-8"
+      >
+        <Image
+          src="https://1000logos.net/wp-content/uploads/2022/03/Rick-and-Morty.png"
+          alt="Logo de Rick y Morty"
+          width={500}
+          height={500}
+        />
+      </motion.div>
+
       <motion.h1
         className="text-5xl font-bold text-center text-blue-600"
         initial={{ opacity: 0, y: -50 }}
@@ -18,7 +33,6 @@ export default function HomePage() {
         Bienvenido a Rick & Morty App
       </motion.h1>
 
-      {/* Animación de descripción */}
       <motion.p
         className="text-lg text-gray-700 text-center mt-4 max-w-md"
         initial={{ opacity: 0, y: 50 }}
@@ -30,7 +44,6 @@ export default function HomePage() {
         experiencia.
       </motion.p>
 
-      {/* Animación de carga */}
       <motion.div
         className="flex items-center justify-center mt-8"
         initial={{ scale: 0 }}

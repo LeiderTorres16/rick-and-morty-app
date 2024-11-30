@@ -2,9 +2,8 @@
 
 import dynamic from "next/dynamic";
 
-// Carga dinámica del componente
 const MapaColombia = dynamic(() => import("@/components/MapaColombia"), {
-  ssr: false, // Desactiva el SSR
+  ssr: false,
 });
 
 export default function MapaPage() {
