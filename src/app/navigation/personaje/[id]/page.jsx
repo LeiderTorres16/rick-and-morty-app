@@ -1,5 +1,6 @@
 import React from "react";
 import axios from "axios";
+import { notFound } from "next/navigation";
 
 async function getPersonaje(id) {
   try {
@@ -8,8 +9,7 @@ async function getPersonaje(id) {
     );
     return response.data;
   } catch (error) {
-    console.error("Error al consultar el personaje:", error);
-    return { results: [], info: {} };
+    return notFound();
   }
 }
 

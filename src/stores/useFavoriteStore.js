@@ -12,6 +12,17 @@ const useFavoriteStore = create((set) => ({
 
   addFavorite: (character) => {
     set((state) => {
+      // Verifica si el personaje ya está en la lista
+      const alreadyInFavorites = state.favorites.some(
+        (fav) => fav.id === character.id
+      );
+
+      if (alreadyInFavorites) {
+        // Retorna el estado actual si ya existe
+        return state;
+      }
+
+      // Si no existe, lo agrega
       const updatedFavorites = [...state.favorites, character];
       localStorage.setItem("favorites", JSON.stringify(updatedFavorites));
       return { favorites: updatedFavorites };

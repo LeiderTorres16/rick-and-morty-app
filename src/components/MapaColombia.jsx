@@ -1,95 +1,123 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from "react-leaflet";
-import "leaflet/dist/leaflet.css";
+import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 
-// Iconos personalizados para los marcadores
-const customIcon = new L.Icon({
-  iconUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png",
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png",
-  shadowSize: [41, 41],
+// Icono personalizado
+const customIcon = L.divIcon({
+  className: "custom-marker",
+  html: `<div style="background-color: #2d89ef; color: white; border-radius: 50%; width: 30px; height: 30px; display: flex; justify-content: center; align-items: center; font-size: 16px;">📍</div>`,
+  iconSize: [30, 30],
+  iconAnchor: [15, 15],
 });
 
-// Componente para manejar eventos de clic en el mapa
-function AddMarker({ onAddMarker }) {
-  useMapEvents({
-    click(e) {
-      onAddMarker(e.latlng); // Llama a la función para agregar el marcador
-    },
-  });
-  return null;
-}
-
 export default function MapaColombia() {
+  const mapContainerRef = useRef(null); // Referencia al contenedor del mapa
+  const mapRef = useRef(null); // Referencia al mapa
+  const markersLayerRef = useRef(null); // Capa para los marcadores
   const [markers, setMarkers] = useState([
-    { id: 1, position: [10.46314, -73.25322], description: "Valledupar: Tierra de música vallenata." },
-    { id: 2, position: [4.711, -74.0721], description: "Bogotá: Capital de Colombia." },
-  ]); // Lista inicial de marcadores, incluyendo los predeterminados
-
-  const handleAddMarker = (latlng) => {
-    setMarkers((prev) => [
-      ...prev,
-      { id: Date.now(), position: [latlng.lat, latlng.lng], description: "Marcador personalizado" },
-    ]);
-  };
-
-  const handleRemoveMarker = (e, id) => {
-    e.stopPropagation(); // Detiene la propagación del evento de clic
-    setMarkers((prev) => prev.filter((marker) => marker.id !== id)); // Filtra el marcador a eliminar
-  };
+    {
+      id: 1, // ID único para identificar marcadores
+      position: [10.46314, -73.25322], // Valledupar
+      description: "Valledupar: Tierra de música vallenata.",
+    },
+    {
+      id: 2, // ID único
+      position: [4.711, -74.0721], // Bogotá
+      description: "Bogotá: Capital de Colombia.",
+    },
+  ]);
 
   useEffect(() => {
-    return () => {
-      // Limpia cualquier instancia previa del mapa
-      const mapContainers = document.querySelectorAll(".leaflet-container");
-      mapContainers.forEach((container) => {
-        if (container._leaflet_id) {
-          container._leaflet_id = null;
-        }
+    if (!mapRef.current && mapContainerRef.current) {
+      // Inicializar el mapa solo si aún no ha sido inicializado
+      const leafletMap = L.map(mapContainerRef.current, {
+        center: [4.570868, -74.297333],
+        zoom: 5,
+        scrollWheelZoom: true,
       });
+
+      // Agregar capa base
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      }).addTo(leafletMap);
+
+      // Crear una capa para los marcadores
+      const markersLayer = L.layerGroup().addTo(leafletMap);
+      markersLayerRef.current = markersLayer;
+
+      // Evento para agregar marcadores personalizados
+      leafletMap.on("click", (e) => {
+        const { lat, lng } = e.latlng;
+        const newMarker = {
+          id: Date.now(), // ID único generado por la marca de tiempo
+          position: [lat, lng],
+          description: "Marcador personalizado",
+        };
+        setMarkers((prevMarkers) => [...prevMarkers, newMarker]);
+      });
+
+      mapRef.current = leafletMap; // Guardar la instancia del mapa
+    }
+
+    return () => {
+      // Limpiar el mapa al desmontar el componente
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (markersLayerRef.current) {
+      // Limpiar la capa de marcadores antes de agregar nuevos
+      markersLayerRef.current.clearLayers();
+
+      // Agregar marcadores a la capa
+      markers.forEach((marker) => {
+        const markerInstance = L.marker(marker.position, { icon: customIcon }).bindPopup(
+          `<div>
+            <p>${marker.description}</p>
+            <button 
+              style="color: red; border: none; background: none; cursor: pointer;"
+              onclick="window.dispatchEvent(new CustomEvent('removeMarker', { detail: ${marker.id} }))"
+            >
+              Eliminar
+            </button>
+          </div>`
+        );
+        markersLayerRef.current.addLayer(markerInstance);
+      });
+    }
+  }, [markers]);
+
+  useEffect(() => {
+    // Manejar eliminación de marcadores
+    const handleRemoveMarker = (e) => {
+      const markerId = e.detail; // ID del marcador a eliminar
+      setMarkers((prevMarkers) => prevMarkers.filter((marker) => marker.id !== markerId));
+    };
+
+    window.addEventListener("removeMarker", handleRemoveMarker);
+
+    return () => {
+      window.removeEventListener("removeMarker", handleRemoveMarker);
     };
   }, []);
 
   return (
-    <div className="container mx-auto px-4 mt-8">
-      <h1 className="text-3xl font-bold text-center">Mapa de Colombia</h1>
-      <MapContainer
-        center={[4.570868, -74.297333]} // Coordenadas centrales de Colombia
-        zoom={6} // Nivel de zoom inicial
-        scrollWheelZoom={false} // Deshabilitar zoom con scroll
-        style={{ height: "600px", width: "100%", marginTop: "20px", borderRadius: "8px" }}
-      >
-        {/* Capa del mapa */}
-        <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        />
-
-        {/* Marcadores dinámicos */}
-        {markers.map((marker) => (
-          <Marker key={marker.id} position={marker.position} icon={customIcon}>
-            <Popup>
-              <div className="text-center">
-                <p>{marker.description}</p>
-                <button
-                  className="mt-2 bg-red-500 text-white py-1 px-3 rounded"
-                  onClick={(e) => handleRemoveMarker(e, marker.id)}
-                >
-                  Eliminar
-                </button>
-              </div>
-            </Popup>
-          </Marker>
-        ))}
-
-        {/* Componente para capturar clics en el mapa */}
-        <AddMarker onAddMarker={handleAddMarker} />
-      </MapContainer>
-    </div>
+    <div
+      ref={mapContainerRef}
+      style={{
+        height: "750px",
+        width: "90%", // 90% del ancho de la pantalla
+        maxWidth: "1200px", // Ancho máximo de 800px
+        margin: "20px auto", // Centrado horizontal y margen superior/inferior
+        borderRadius: "8px",
+        boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)", // Sombras para diseño
+      }}
+    />
   );
 }
